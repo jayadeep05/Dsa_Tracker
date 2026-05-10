@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { searchQuestions, getPatterns } from '../api/client';
 import QuestionCard from '../components/QuestionCard';
+import { useSuccess } from '../context/SuccessContext';
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -12,8 +13,9 @@ export default function Search() {
   const [impFilter, setImpFilter] = useState('');
   const [sort, setSort] = useState('pattern');
   const debounceRef = useRef(null);
+  const { triggerSuccess } = useSuccess();
 
-  useEffect(() => { getPatterns().then(r => setPatterns(r.data)).catch(()=>{}); }, []);
+  useEffect(() => { getPatterns().then(r => setPatterns(r.data)).catch(() => { }); }, []);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -27,16 +29,27 @@ export default function Search() {
     try {
       const res = await searchQuestions({ q: query || undefined, pattern: patternFilter || undefined, difficulty: diffFilter || undefined, importance: impFilter || undefined });
       let data = res.data;
-      if (sort === 'difficulty') data = [...data].sort((a,b) => 'EMH'.indexOf(a.difficulty) - 'EMH'.indexOf(b.difficulty));
-      if (sort === 'importance') data = [...data].sort((a,b) => ['must','strong','optional'].indexOf(a.importance) - ['must','strong','optional'].indexOf(b.importance));
+      if (sort === 'difficulty') data = [...data].sort((a, b) => 'EMH'.indexOf(a.difficulty) - 'EMH'.indexOf(b.difficulty));
+      if (sort === 'importance') data = [...data].sort((a, b) => ['must', 'strong', 'optional'].indexOf(a.importance) - ['must', 'strong', 'optional'].indexOf(b.importance));
       setResults(data);
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
     setLoading(false);
   };
 
   const handleUpdate = useCallback((updated) => {
-    setResults(prev => prev.map(q => q.id === updated.id ? updated : q));
-  }, []);
+    setResults(prev => {
+      const existing = prev.find(q => q.id === updated.id);
+      const nowSolved = updated.status === 'solved';
+      const wasSolved = existing?.status === 'solved';
+
+      const newResults = prev.map(q => q.id === updated.id ? updated : q);
+      if (nowSolved && !wasSolved) {
+        const pattern = patterns.find(p => p.id === updated.patternId);
+        triggerSuccess(updated, pattern, []);
+      }
+      return newResults;
+    });
+  }, [patterns, triggerSuccess]);
 
   useEffect(() => { if (results.length) doSearch(); }, [sort]);
 
@@ -53,11 +66,11 @@ export default function Search() {
           placeholder="Search question names, insights, companies..."
           autoFocus
         />
-        {query && <button onClick={() => setQuery('')} style={{background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'16px'}}>✕</button>}
+        {query && <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px' }}>✕</button>}
       </div>
 
-      <div className="filter-bar" style={{marginBottom:'20px'}}>
-        <select className="filter-btn" value={patternFilter} onChange={e => setPatternFilter(e.target.value)} style={{cursor:'pointer'}}>
+      <div className="filter-bar" style={{ marginBottom: '20px' }}>
+        <select className="filter-btn" value={patternFilter} onChange={e => setPatternFilter(e.target.value)} style={{ cursor: 'pointer' }}>
           <option value="">All Patterns</option>
           {patterns.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -74,11 +87,11 @@ export default function Search() {
           <option value="optional">Optional</option>
         </select>
         <div className="filter-sep" />
-        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>Sort:</span>
-        {[['pattern','By Pattern'],['difficulty','By Difficulty'],['importance','By Importance']].map(([v,l]) => (
-          <button key={v} className={`filter-btn ${sort===v?'active':''}`} onClick={() => setSort(v)}>{l}</button>
+        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Sort:</span>
+        {[['pattern', 'By Pattern'], ['difficulty', 'By Difficulty'], ['importance', 'By Importance']].map(([v, l]) => (
+          <button key={v} className={`filter-btn ${sort === v ? 'active' : ''}`} onClick={() => setSort(v)}>{l}</button>
         ))}
-        <span style={{marginLeft:'auto', fontSize:'12px', color:'var(--text-muted)'}}>
+        <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-muted)' }}>
           {loading ? 'Searching...' : `${results.length} results`}
         </span>
       </div>
@@ -91,8 +104,8 @@ export default function Search() {
         <div className="loading">No results for "{query}"</div>
       )}
       {!loading && results.length === 0 && !query && (
-        <div className="loading" style={{flexDirection:'column', gap:'8px'}}>
-          <span style={{fontSize:'32px'}}>🔍</span>
+        <div className="loading" style={{ flexDirection: 'column', gap: '8px' }}>
+          <span style={{ fontSize: '32px' }}>🔍</span>
           <span>Type to search across 248 questions</span>
         </div>
       )}

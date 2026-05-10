@@ -23,7 +23,10 @@ public class QuestionDto {
     private Integer confidence;
     private Short attempts;
     private Short timeMinutes;
+    private Short timeSeconds;
     private String personalNote;
+    private String bruteNotes;
+    private String optimalNotes;
     private Boolean needsRevision;
     private String solvedAt;
     private String lastReviewed;

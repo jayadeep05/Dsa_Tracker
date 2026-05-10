@@ -9,6 +9,7 @@ import com.dsatracker.repository.PatternRepository;
 import com.dsatracker.repository.ProgressRepository;
 import com.dsatracker.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProgressService {
 
     private final ProgressRepository progressRepository;
@@ -50,15 +52,21 @@ public class ProgressService {
                 .insight(q.getInsight())
                 .displayOrder(q.getDisplayOrder());
 
-        progOpt.ifPresentOrElse(prog -> b
-                .status(prog.getStatus().name())
-                .confidence(prog.getConfidence() != null ? prog.getConfidence().intValue() : 0)
-                .attempts(prog.getAttempts())
-                .timeMinutes(prog.getTimeMinutes())
-                .personalNote(prog.getPersonalNote())
+        progOpt.ifPresentOrElse(prog -> {
+                log.info("Progress found for userId: {}, questionId: {}. Note length: {}", userId, q.getId(), 
+                        prog.getPersonalNote() != null ? prog.getPersonalNote().length() : 0);
+                b.status(prog.getStatus().name())
+                 .confidence(prog.getConfidence() != null ? prog.getConfidence().intValue() : 0)
+                 .attempts(prog.getAttempts())
+                 .timeMinutes(prog.getTimeMinutes())
+                 .timeSeconds(prog.getTimeSeconds())
+                 .personalNote(prog.getPersonalNote())
+                .bruteNotes(prog.getBruteNotes())
+                .optimalNotes(prog.getOptimalNotes() != null ? prog.getOptimalNotes() : prog.getPersonalNote())
                 .needsRevision(prog.getNeedsRevision())
                 .solvedAt(prog.getSolvedAt() != null ? prog.getSolvedAt().toString() : null)
-                .lastReviewed(prog.getLastReviewed() != null ? prog.getLastReviewed().toString() : null),
+                 .lastReviewed(prog.getLastReviewed() != null ? prog.getLastReviewed().toString() : null);
+        },
                 () -> b.status("not_started").confidence(0).attempts((short) 0).timeMinutes((short) 0)
                         .needsRevision(false));
 

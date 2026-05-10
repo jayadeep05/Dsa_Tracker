@@ -22,7 +22,7 @@ function Navbar({ toggleTheme, isLight }) {
 
     useEffect(() => {
         if (user) {
-            getStreak().then(r => setStreak(r.data.currentStreak)).catch(() => {});
+            getStreak().then(r => setStreak(r.data.currentStreak)).catch(() => { });
         }
     }, [user]);
 
@@ -32,23 +32,51 @@ function Navbar({ toggleTheme, isLight }) {
         <nav className="navbar">
             <span className="nav-logo">⚡ DSA Tracker</span>
             <div className="nav-links">
-                <NavLink to="/" end className={({isActive})=>`nav-link ${isActive?'active':''}`}>Dashboard</NavLink>
-                <NavLink to="/study" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Study</NavLink>
-                <NavLink to="/lists" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Lists</NavLink>
-                <NavLink to="/analytics" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Analytics</NavLink>
-                <NavLink to="/search" className={({isActive})=>`nav-link ${isActive?'active':''}`}>Search</NavLink>
+                <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Dashboard</NavLink>
+                <NavLink to="/study" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Study</NavLink>
+                <NavLink to="/lists" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Lists</NavLink>
+                <NavLink to="/analytics" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Analytics</NavLink>
+                <NavLink to="/search" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Search</NavLink>
             </div>
             {streak >= 3 && <div className="nav-streak">🔥 {streak} day streak</div>}
-            
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginRight: '4px', fontWeight: '500' }}>
                     {user.username}
                 </span>
-                <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 12px', cursor: 'pointer', fontSize: '13px' }}>
-                    Logout
-                </button>
-                <button onClick={toggleTheme} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', padding: '6px 12px', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                
+                {/* Theme Toggle */}
+                <button 
+                    onClick={toggleTheme} 
+                    title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                    style={{ 
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', 
+                        borderRadius: '8px', color: 'var(--text-primary)', 
+                        width: '36px', height: '36px', 
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.2s'
+                    }}
+                >
                     {isLight ? '🌙' : '☀️'}
+                </button>
+
+                {/* Logout Button */}
+                <button 
+                    onClick={logout} 
+                    title="Logout"
+                    style={{ 
+                        background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', 
+                        borderRadius: '8px', color: '#F59E0B', 
+                        width: '36px', height: '36px', 
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
                 </button>
             </div>
         </nav>
@@ -84,7 +112,7 @@ function AppContent() {
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                
+
                 {/* Protected Routes */}
                 <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                 <Route path="/study" element={<PrivateRoute><Study /></PrivateRoute>} />
@@ -96,11 +124,15 @@ function AppContent() {
     );
 }
 
+import { SuccessProvider } from './context/SuccessContext';
+
 export default function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <AppContent />
+                <SuccessProvider>
+                    <AppContent />
+                </SuccessProvider>
             </AuthProvider>
         </BrowserRouter>
     );

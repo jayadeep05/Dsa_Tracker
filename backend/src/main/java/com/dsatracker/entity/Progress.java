@@ -42,8 +42,18 @@ public class Progress {
     @Builder.Default
     private Short timeMinutes = 0;
 
+    @Column(name = "time_seconds")
+    @Builder.Default
+    private Short timeSeconds = 0;
+
     @Column(name = "personal_note", columnDefinition = "TEXT")
     private String personalNote;
+
+    @Column(name = "brute_notes", columnDefinition = "TEXT")
+    private String bruteNotes;
+
+    @Column(name = "optimal_notes", columnDefinition = "TEXT")
+    private String optimalNotes;
 
     @Column(name = "solved_at")
     private LocalDateTime solvedAt;

@@ -56,8 +56,19 @@ public class QuestionController {
         if (req.getTimeMinutes() != null) {
             progress.setTimeMinutes(req.getTimeMinutes().shortValue());
         }
+        if (req.getTimeSeconds() != null) {
+            progress.setTimeSeconds(req.getTimeSeconds().shortValue());
+        }
         if (req.getPersonalNote() != null) {
             progress.setPersonalNote(req.getPersonalNote());
+        }
+        if (req.getBruteNotes() != null) {
+            progress.setBruteNotes(req.getBruteNotes());
+        }
+        if (req.getOptimalNotes() != null) {
+            progress.setOptimalNotes(req.getOptimalNotes());
+            // Sync with personalNote for now
+            progress.setPersonalNote(req.getOptimalNotes());
         }
         if (req.getNeedsRevision() != null) {
             progress.setNeedsRevision(req.getNeedsRevision());

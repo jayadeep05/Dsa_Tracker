@@ -178,19 +178,19 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [editorExpanded, setEditorExpanded] = useState(false);
   const [note, setNote] = useState(initialQ.personalNote || '');
+  const [bruteNote, setBruteNote] = useState(initialQ.bruteNotes || '');
+  const [optimalNote, setOptimalNote] = useState(initialQ.optimalNotes || '');
+  const [activeTab, setActiveTab] = useState('optimal'); // Default to Optimal
   const [timeMin, setTimeMin] = useState(initialQ.timeMinutes || 0);
+  const [timeSec, setTimeSec] = useState(initialQ.timeSeconds || 0);
   const [saving, setSaving] = useState(false);
 
-  // Only sync from parent when the question ID changes (different question),
-  // NOT on every parent re-render which creates a new object reference.
-  const prevIdRef = React.useRef(initialQ.id);
   useEffect(() => {
-    if (initialQ.id !== prevIdRef.current) {
-      prevIdRef.current = initialQ.id;
-      setQ(initialQ);
-      setNote(initialQ.personalNote || '');
-      setTimeMin(initialQ.timeMinutes || 0);
-    }
+    setQ(initialQ);
+    setBruteNote(initialQ.bruteNotes || '');
+    setOptimalNote(initialQ.optimalNotes || '');
+    setTimeMin(initialQ.timeMinutes || 0);
+    setTimeSec(initialQ.timeSeconds || 0);
   }, [initialQ]);
 
   // Use a ref for the latest q so the doUpdate callback never goes stale
@@ -212,8 +212,10 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
       const res = await updateProgress(current.id, patch);
       // API response is the single source of truth
       setQ(res.data);
-      setNote(res.data.personalNote || '');
+      setBruteNote(res.data.bruteNotes || '');
+      setOptimalNote(res.data.optimalNotes || '');
       setTimeMin(res.data.timeMinutes || 0);
+      setTimeSec(res.data.timeSeconds || 0);
       onUpdateRef.current?.(res.data);
     } catch (e) {
       console.error(e);
@@ -222,11 +224,37 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
     setSaving(false);
   }, []); // stable — no dependencies, uses refs
 
-  const saveNote = () => doUpdate({ status: q.status, personalNote: note, timeMinutes: Number(timeMin) || 0 });
+  const saveNote = useCallback(async () => {
+    const patch = { 
+      status: q.status, 
+      timeMinutes: Number(timeMin) || 0,
+      timeSeconds: Number(timeSec) || 0,
+      bruteNotes: bruteNote,
+      optimalNotes: optimalNote
+    };
+    await doUpdate(patch);
+  }, [q.status, timeMin, timeSec, bruteNote, optimalNote, doUpdate]);
+
+  // Auto-save effect
+  useEffect(() => {
+    const hasChanges = 
+      bruteNote !== (q.bruteNotes || '') || 
+      optimalNote !== (q.optimalNotes || q.personalNote || '') ||
+      Number(timeMin) !== (q.timeMinutes || 0) ||
+      Number(timeSec) !== (q.timeSeconds || 0);
+
+    if (hasChanges && !saving) {
+      const timer = setTimeout(() => {
+        saveNote();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [bruteNote, optimalNote, timeMin, timeSec, q, saving, saveNote]);
 
   const handleFormat = () => {
+    const currentNote = activeTab === 'brute' ? bruteNote : optimalNote;
     let indent = 0;
-    const lines = note.split('\n');
+    const lines = currentNote.split('\n');
     const formatted = lines.map(line => {
       let trimmed = line.trim();
       if (trimmed.startsWith('}') || trimmed.startsWith(']') || trimmed.startsWith(')')) {
@@ -238,7 +266,9 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
       }
       return result;
     });
-    setNote(formatted.join('\n'));
+    const formattedStr = formatted.join('\n');
+    if (activeTab === 'brute') setBruteNote(formattedStr);
+    else setOptimalNote(formattedStr);
   };
 
   const tags = (q.tags || '').split(',').map(t => t.trim()).filter(Boolean);
@@ -254,6 +284,7 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
 
   return (
     <div
+      id={`question-${q.id}`}
       style={{
         background: 'var(--bg-surface)',
         border: `1px solid ${cardBorderColor}`,
@@ -268,6 +299,24 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
         .premium-editor-textarea:focus { outline: none !important; }
         .split-layout { display: grid; grid-template-columns: 3fr 7fr; }
         @media (max-width: 900px) { .split-layout { grid-template-columns: 1fr; } }
+        .time-input {
+          width: 32px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 4px; color: #fff; font-size: 11px; padding: 4px 2px; outline: none;
+          text-align: center; transition: all 0.2s;
+        }
+        .time-input:focus { border-color: rgba(0,212,170,0.5); background: rgba(0,212,170,0.05); }
+        .time-input::-webkit-outer-spin-button, .time-input::-webkit-inner-spin-button {
+          -webkit-appearance: none; margin: 0;
+        }
+        .saving-dot {
+          width: 6px; height: 6px; background: #00D4AA; border-radius: 50%;
+          animation: saving-pulse 1.5s infinite;
+        }
+        @keyframes saving-pulse {
+          0% { opacity: 0.3; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+          100% { opacity: 0.3; transform: scale(0.8); }
+        }
       `}</style>
 
       {/* ── HEADER ROW ── */}
@@ -440,24 +489,69 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 position: 'sticky', top: 0, zIndex: 10
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>SOLUTION CODE & NOTES</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    background: 'rgba(var(--white-rgb),0.04)', 
+                    padding: '2px', 
+                    borderRadius: '8px',
+                    border: '1px solid rgba(var(--white-rgb),0.06)'
+                  }}>
+                    <button
+                      onClick={() => setActiveTab('optimal')}
+                      style={{
+                        padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '700',
+                        cursor: 'pointer', transition: 'all 0.2s',
+                        background: activeTab === 'optimal' ? '#00D4AA20' : 'transparent',
+                        color: activeTab === 'optimal' ? '#00D4AA' : '#A1A1AA',
+                        border: 'none',
+                        letterSpacing: '0.02em'
+                      }}
+                    >OPTIMAL</button>
+                    <button
+                      onClick={() => setActiveTab('brute')}
+                      style={{
+                        padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '700',
+                        cursor: 'pointer', transition: 'all 0.2s',
+                        background: activeTab === 'brute' ? 'rgba(245,158,11,0.2)' : 'transparent',
+                        color: activeTab === 'brute' ? '#F59E0B' : '#A1A1AA',
+                        border: 'none',
+                        letterSpacing: '0.02em'
+                      }}
+                    >BRUTE FORCE</button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  {saving && (
+                    <span style={{ 
+                      fontSize: '10px', color: '#00D4AA', marginRight: '8px', fontWeight: '600',
+                      display: 'flex', alignItems: 'center', gap: '4px'
+                    }}>
+                      <span className="saving-dot"></span> Auto-saving...
+                    </span>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '10px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)' }}>TIME:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <input 
+                        type="number" 
+                        value={timeMin} 
+                        onChange={(e) => setTimeMin(e.target.value)}
+                        className="time-input"
+                        placeholder="MM"
+                      />
+                      <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', fontWeight: 'bold' }}>:</span>
+                      <input 
+                        type="number" 
+                        value={timeSec} 
+                        onChange={(e) => setTimeSec(e.target.value)}
+                        className="time-input"
+                        placeholder="SS"
+                      />
+                    </div>
+                  </div>
                   <EditorToolbarBtn icon="✨" label="Format" onClick={handleFormat} />
                   <EditorToolbarBtn icon={editorExpanded ? '↑' : '↓'} label={editorExpanded ? 'Collapse' : 'Expand'} onClick={() => setEditorExpanded(!editorExpanded)} />
-                  {(note !== (q.personalNote || '')) && (
-                    <button
-                      onClick={saveNote} disabled={saving}
-                      style={{
-                        padding: '4px 12px', borderRadius: '4px', border: '1px solid rgba(0,212,170,0.4)',
-                        background: 'rgba(0,212,170,0.15)', color: '#00D4AA', fontSize: '11px', fontWeight: '600',
-                        cursor: 'pointer', transition: 'all 0.15s', marginLeft: '6px'
-                      }}
-                    >
-                      {saving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -469,8 +563,8 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
                 padding: '16px 8px'
               }}>
                 <Editor
-                  value={note}
-                  onValueChange={setNote}
+                  value={activeTab === 'optimal' ? optimalNote : bruteNote}
+                  onValueChange={activeTab === 'optimal' ? setOptimalNote : setBruteNote}
                   highlight={code => {
                     try {
                       return Prism.highlight(code, Prism.languages.javascript || Prism.languages.clike || {}, 'javascript');

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSpecialList } from '../api/client';
 import QuestionCard from '../components/QuestionCard';
+import { useSuccess } from '../context/SuccessContext';
 
 const LISTS = [
   { key: 'revision20', icon: '📋', name: 'Revision-20', desc: 'Do ONLY these 20 in 3–4 hours the day before every interview. No new questions.', color: 'var(--accent-amber)' },
@@ -13,14 +14,25 @@ function ListPanel({ listKey, onClose }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const info = LISTS.find(l => l.key === listKey);
+  const { triggerSuccess } = useSuccess();
 
   useEffect(() => {
-    getSpecialList(listKey).then(r => { setQuestions(r.data); setLoading(false); }).catch(()=>setLoading(false));
+    getSpecialList(listKey).then(r => { setQuestions(r.data); setLoading(false); }).catch(() => setLoading(false));
   }, [listKey]);
 
   const handleUpdate = useCallback((updated) => {
-    setQuestions(prev => prev.map(q => q.id === updated.id ? updated : q));
-  }, []);
+    setQuestions(prev => {
+      const existing = prev.find(q => q.id === updated.id);
+      const nowSolved = updated.status === 'solved';
+      const wasSolved = existing?.status === 'solved';
+
+      const newQs = prev.map(q => q.id === updated.id ? updated : q);
+      if (nowSolved && !wasSolved) {
+        triggerSuccess(updated, null, newQs);
+      }
+      return newQs;
+    });
+  }, [triggerSuccess]);
 
   return (
     <>
@@ -28,8 +40,8 @@ function ListPanel({ listKey, onClose }) {
       <div className="slide-panel">
         <div className="panel-header">
           <div>
-            <div style={{fontSize:'20px', fontWeight:'700'}}>{info.icon} {info.name}</div>
-            <div style={{fontSize:'12px', color:'var(--text-muted)', marginTop:'4px'}}>{info.desc}</div>
+            <div style={{ fontSize: '20px', fontWeight: '700' }}>{info.icon} {info.name}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{info.desc}</div>
           </div>
           <button className="panel-close" onClick={onClose}>✕</button>
         </div>
@@ -49,7 +61,7 @@ export default function Lists() {
 
   useEffect(() => {
     LISTS.forEach(l => {
-      getSpecialList(l.key).then(r => setCounts(c => ({...c, [l.key]: r.data.length}))).catch(()=>{});
+      getSpecialList(l.key).then(r => setCounts(c => ({ ...c, [l.key]: r.data.length }))).catch(() => { });
     });
   }, []);
 
@@ -60,7 +72,7 @@ export default function Lists() {
         {LISTS.map(l => (
           <div key={l.key} className="card list-trigger-card" onClick={() => setActiveList(l.key)}>
             <div className="list-trigger-icon">{l.icon}</div>
-            <div className="list-trigger-name" style={{color: l.color}}>{l.name}</div>
+            <div className="list-trigger-name" style={{ color: l.color }}>{l.name}</div>
             <div className="list-trigger-desc">{l.desc}</div>
             <div className="list-trigger-count">{counts[l.key] ? `${counts[l.key]} questions` : 'Loading...'}</div>
           </div>
