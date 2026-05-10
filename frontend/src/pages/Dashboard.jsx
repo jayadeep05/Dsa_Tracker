@@ -131,10 +131,10 @@ export default function Dashboard() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', marginBottom: '8px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: '600' }}>Needs revision</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-gray)', fontWeight: '500' }}>0 flagged</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-gray)', fontWeight: '500' }}>{data.flaggedForRevision || 0} flagged</div>
             </div>
             <div style={{ height: '6px', background: 'var(--bg-alpha-5)', borderRadius: '99px', overflow: 'hidden', border: '1px solid var(--border-alpha-2)', boxShadow: 'inset 0 1px 3px var(--shadow-alpha-30)' }}>
-              <div style={{ background: 'linear-gradient(90deg, #7C3AED 0%, #A78BFA 100%)', height: '100%', width: `0%`, borderRadius: '99px' }} />
+              <div style={{ background: 'linear-gradient(90deg, #7C3AED 0%, #A78BFA 100%)', height: '100%', width: `${(data.flaggedForRevision / data.totalQuestions * 100) || 0}%`, borderRadius: '99px' }} />
             </div>
           </div>
         </div>

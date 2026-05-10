@@ -34,6 +34,7 @@ public class DashboardService {
         long attempted = progressRepository.countAttempted(userId);
         long mustSolved = progressRepository.countMustSolved(userId);
         long mustTotal = questionRepository.findMustQuestionsOrdered().size();
+        long flaggedForRevision = progressRepository.countNeedsRevision(userId);
 
         double percentComplete = totalQuestions > 0 ? Math.round((double) solved / totalQuestions * 1000) / 10.0 : 0;
 
@@ -64,6 +65,7 @@ public class DashboardService {
                 .currentStreak(currentStreak)
                 .longestStreak(longestStreak)
                 .todaySolved(todaySolved)
+                .flaggedForRevision(flaggedForRevision)
                 .patternProgress(patternProgress)
                 .weakPatterns(weakPatterns)
                 .nextRecommended(nextRecommended)

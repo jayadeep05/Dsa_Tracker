@@ -30,4 +30,7 @@ public interface ProgressRepository extends JpaRepository<Progress, Integer> {
 
     @Query("SELECT COUNT(p) FROM Progress p WHERE p.user.id = :userId AND p.question.importance = 'must' AND p.status = 'solved'")
     long countMustSolved(@org.springframework.data.repository.query.Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(p) FROM Progress p WHERE p.user.id = :userId AND p.needsRevision = true")
+    long countNeedsRevision(@org.springframework.data.repository.query.Param("userId") Integer userId);
 }

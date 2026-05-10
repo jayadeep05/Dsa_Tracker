@@ -18,6 +18,7 @@ public class DashboardResponse {
     private int currentStreak;
     private int longestStreak;
     private int todaySolved;
+    private long flaggedForRevision;
     private List<PatternProgressDto> patternProgress;
     private List<PatternProgressDto> weakPatterns;
     private QuestionDto nextRecommended;
