@@ -189,6 +189,7 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
     setQ(initialQ);
     setBruteNote(initialQ.bruteNotes || '');
     setOptimalNote(initialQ.optimalNotes || '');
+    setNote(initialQ.personalNote || '');
     setTimeMin(initialQ.timeMinutes || 0);
     setTimeSec(initialQ.timeSeconds || 0);
   }, [initialQ]);
@@ -214,6 +215,7 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
       setQ(res.data);
       setBruteNote(res.data.bruteNotes || '');
       setOptimalNote(res.data.optimalNotes || '');
+      setNote(res.data.personalNote || '');
       setTimeMin(res.data.timeMinutes || 0);
       setTimeSec(res.data.timeSeconds || 0);
       onUpdateRef.current?.(res.data);
@@ -230,16 +232,18 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
       timeMinutes: Number(timeMin) || 0,
       timeSeconds: Number(timeSec) || 0,
       bruteNotes: bruteNote,
-      optimalNotes: optimalNote
+      optimalNotes: optimalNote,
+      personalNote: note
     };
     await doUpdate(patch);
-  }, [q.status, timeMin, timeSec, bruteNote, optimalNote, doUpdate]);
+  }, [q.status, timeMin, timeSec, bruteNote, optimalNote, note, doUpdate]);
 
   // Auto-save effect
   useEffect(() => {
     const hasChanges = 
       bruteNote !== (q.bruteNotes || '') || 
-      optimalNote !== (q.optimalNotes || q.personalNote || '') ||
+      optimalNote !== (q.optimalNotes || '') ||
+      note !== (q.personalNote || '') ||
       Number(timeMin) !== (q.timeMinutes || 0) ||
       Number(timeSec) !== (q.timeSeconds || 0);
 
@@ -249,10 +253,14 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [bruteNote, optimalNote, timeMin, timeSec, q, saving, saveNote]);
+  }, [bruteNote, optimalNote, note, timeMin, timeSec, q, saving, saveNote]);
 
   const handleFormat = () => {
-    const currentNote = activeTab === 'brute' ? bruteNote : optimalNote;
+    let currentNote = '';
+    if (activeTab === 'brute') currentNote = bruteNote;
+    else if (activeTab === 'optimal') currentNote = optimalNote;
+    else currentNote = note;
+
     let indent = 0;
     const lines = currentNote.split('\n');
     const formatted = lines.map(line => {
@@ -268,7 +276,8 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
     });
     const formattedStr = formatted.join('\n');
     if (activeTab === 'brute') setBruteNote(formattedStr);
-    else setOptimalNote(formattedStr);
+    else if (activeTab === 'optimal') setOptimalNote(formattedStr);
+    else setNote(formattedStr);
   };
 
   const tags = (q.tags || '').split(',').map(t => t.trim()).filter(Boolean);
@@ -519,6 +528,17 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
                         letterSpacing: '0.02em'
                       }}
                     >BRUTE FORCE</button>
+                    <button
+                      onClick={() => setActiveTab('notes')}
+                      style={{
+                        padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '700',
+                        cursor: 'pointer', transition: 'all 0.2s',
+                        background: activeTab === 'notes' ? 'rgba(var(--white-rgb), 0.1)' : 'transparent',
+                        color: activeTab === 'notes' ? '#E4E4E7' : '#A1A1AA',
+                        border: 'none',
+                        letterSpacing: '0.02em'
+                      }}
+                    >NOTES</button>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -563,8 +583,8 @@ export default function QuestionCard({ question: initialQ, onUpdate }) {
                 padding: '16px 8px'
               }}>
                 <Editor
-                  value={activeTab === 'optimal' ? optimalNote : bruteNote}
-                  onValueChange={activeTab === 'optimal' ? setOptimalNote : setBruteNote}
+                  value={activeTab === 'optimal' ? optimalNote : activeTab === 'brute' ? bruteNote : note}
+                  onValueChange={activeTab === 'optimal' ? setOptimalNote : activeTab === 'brute' ? setBruteNote : setNote}
                   highlight={code => {
                     try {
                       return Prism.highlight(code, Prism.languages.javascript || Prism.languages.clike || {}, 'javascript');

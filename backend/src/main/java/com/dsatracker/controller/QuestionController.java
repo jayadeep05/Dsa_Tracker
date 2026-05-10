@@ -67,8 +67,6 @@ public class QuestionController {
         }
         if (req.getOptimalNotes() != null) {
             progress.setOptimalNotes(req.getOptimalNotes());
-            // Sync with personalNote for now
-            progress.setPersonalNote(req.getOptimalNotes());
         }
         if (req.getNeedsRevision() != null) {
             progress.setNeedsRevision(req.getNeedsRevision());

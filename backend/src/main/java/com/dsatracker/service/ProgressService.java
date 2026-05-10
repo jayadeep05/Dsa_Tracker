@@ -60,9 +60,9 @@ public class ProgressService {
                  .attempts(prog.getAttempts())
                  .timeMinutes(prog.getTimeMinutes())
                  .timeSeconds(prog.getTimeSeconds())
-                 .personalNote(prog.getPersonalNote())
+                .personalNote(prog.getPersonalNote())
                 .bruteNotes(prog.getBruteNotes())
-                .optimalNotes(prog.getOptimalNotes() != null ? prog.getOptimalNotes() : prog.getPersonalNote())
+                .optimalNotes(prog.getOptimalNotes())
                 .needsRevision(prog.getNeedsRevision())
                 .solvedAt(prog.getSolvedAt() != null ? prog.getSolvedAt().toString() : null)
                  .lastReviewed(prog.getLastReviewed() != null ? prog.getLastReviewed().toString() : null);
