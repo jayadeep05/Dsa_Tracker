@@ -1,0 +1,31 @@
+# === Backend ===
+backend/target/
+backend/.mvn/
+backend/*.iml
+backend/.idea/
+
+# === Frontend ===
+frontend/node_modules/
+frontend/dist/
+
+# === IDE ===
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Sensitive ===
+*.pem
+backend.pem
+application-prod.properties
+
+# === Temp deploy scripts ===
+deploy_setup.sh
+deploy_run.sh
+fix_nginx.sh
+test_api.sh

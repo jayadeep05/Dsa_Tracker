@@ -1,0 +1,22 @@
+-- Patterns (prep_order is the CORRECT study order, not raw HTML order)
+INSERT INTO patterns (name, slug, prep_order, week_start, phase_label, sub_heading, total_qs, must_count) VALUES
+('Two Pointers','two-ptr',1,1,'Phase 1 · Weeks 1–4 · Core Patterns','Opposite and same-direction pointer techniques',16,11),
+('Linked List','linkedlist',2,1,'Phase 1 · Weeks 1–4 · Core Patterns','Pointer re-wiring, fast/slow, reversal',11,8),
+('Sliding Window','sliding-win',3,2,'Phase 1 · Weeks 1–4 · Core Patterns','Variable and fixed window with hashmap',13,10),
+('Binary Search on Answer','bsearch',4,2,'Phase 1 · Weeks 1–4 · Core Patterns','Binary search on monotone feasibility function',17,13),
+('Prefix Sum','prefix-sum',5,3,'Phase 1 · Weeks 1–4 · Core Patterns','Prefix sum + hashmap for subarray queries',13,10),
+('Heap / Priority Queue','heap',6,3,'Phase 1 · Weeks 1–4 · Core Patterns','Min/max heap for top-K and streaming median',13,8),
+('Greedy','greedy',7,4,'Phase 1 · Weeks 1–4 · Core Patterns','Local optimal choice with global correctness proof',13,10),
+('Intervals','intervals',8,4,'Phase 1 · Weeks 1–4 · Core Patterns','Sort by start/end, merge and sweep',8,5),
+('Stacks','stacks',9,5,'Phase 2 · Weeks 5–8 · Data Structures','LIFO matching, expression evaluation',6,4),
+('Monotonic Stack','mono-stack',10,5,'Phase 2 · Weeks 5–8 · Data Structures','Next greater/smaller in O(n) via decreasing stack',11,7),
+('Tree DFS / BFS','trees',11,6,'Phase 2 · Weeks 5–8 · Data Structures','Return-value pattern, level order, BST properties',22,17),
+('Graph BFS / DFS','graphs',12,7,'Phase 2 · Weeks 5–8 · Data Structures','Matrix DFS, multi-source BFS, topological sort',17,13),
+('Backtracking','backtracking',13,8,'Phase 2 · Weeks 5–8 · Data Structures','Choose/skip template, pruning, permutations',13,10),
+('Dynamic Programming','dp',14,9,'Phase 3 · Weeks 9–12 · Hard Patterns','Define dp state in plain English before coding',26,21),
+('Union Find (DSU)','dsu',15,11,'Phase 3 · Weeks 9–12 · Hard Patterns','Path compression + rank, dynamic connectivity',8,6),
+('Trie','trie',16,11,'Phase 3 · Weeks 9–12 · Hard Patterns','TrieNode with children dict + is_end flag',8,4),
+('Bit Manipulation','bit-manip',17,12,'Phase 3 · Weeks 9–12 · Hard Patterns','XOR properties, bit tricks, mask enumeration',10,7),
+('Advanced Graph','adv-graph',18,12,'Phase 3 · Weeks 9–12 · Hard Patterns','Dijkstra, Bellman-Ford, MST, Eulerian path',12,9),
+('Segment Tree / BIT','seg-tree',19,15,'Phase 4 · Weeks 13–16 · Elite','Range queries with point/range updates in O(log n)',5,2),
+('String Algorithms','strings',20,15,'Phase 4 · Weeks 13–16 · Elite','KMP, sliding window on strings, anagram grouping',7,5);
