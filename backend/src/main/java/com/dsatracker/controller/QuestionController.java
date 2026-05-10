@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,10 +74,11 @@ public class QuestionController {
         }
 
         boolean nowSolved = progress.getStatus() == Progress.Status.solved;
+        ZoneId ist = ZoneId.of("Asia/Kolkata");
         if (nowSolved && progress.getSolvedAt() == null) {
-            progress.setSolvedAt(LocalDateTime.now());
+            progress.setSolvedAt(LocalDateTime.now(ist));
         }
-        progress.setLastReviewed(LocalDateTime.now());
+        progress.setLastReviewed(LocalDateTime.now(ist));
 
         // Increment attempts
         if (progress.getAttempts() == null)
@@ -146,7 +148,7 @@ public class QuestionController {
     }
 
     private void updateDailyLog(int solvedDelta, com.dsatracker.entity.User user) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         DailyLog log = dailyLogRepository.findByUserIdAndLogDate(user.getId(), today)
                 .orElseGet(() -> dailyLogRepository.save(
                         DailyLog.builder().user(user).logDate(today).qsSolved(0).qsAttempted(0).minutesSpent(0)

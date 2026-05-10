@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -37,9 +38,10 @@ public class DashboardController {
 
     @PostMapping("/api/daily-log")
     public ResponseEntity<DailyLog> logToday(@org.springframework.security.core.annotation.AuthenticationPrincipal com.dsatracker.entity.User user, @RequestBody(required = false) Map<String, Object> body) {
-        DailyLog log = dailyLogRepository.findByUserIdAndLogDate(user.getId(), LocalDate.now())
+        ZoneId ist = ZoneId.of("Asia/Kolkata");
+        DailyLog log = dailyLogRepository.findByUserIdAndLogDate(user.getId(), LocalDate.now(ist))
                 .orElseGet(() -> dailyLogRepository.save(
-                        DailyLog.builder().user(user).logDate(LocalDate.now()).qsSolved(0).qsAttempted(0).minutesSpent(0).build()
+                        DailyLog.builder().user(user).logDate(LocalDate.now(ist)).qsSolved(0).qsAttempted(0).minutesSpent(0).build()
                 ));
         if (body != null) {
             if (body.containsKey("note")) log.setNote((String) body.get("note"));
@@ -49,7 +51,7 @@ public class DashboardController {
 
     @GetMapping("/api/daily-log")
     public List<DailyLog> getDailyLog(@org.springframework.security.core.annotation.AuthenticationPrincipal com.dsatracker.entity.User user, @RequestParam(defaultValue = "30") int days) {
-        LocalDate from = LocalDate.now().minusDays(days - 1);
+        LocalDate from = LocalDate.now(ZoneId.of("Asia/Kolkata")).minusDays(days - 1);
         return dailyLogRepository.findLastNDays(user.getId(), from);
     }
 }

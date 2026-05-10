@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -15,7 +16,7 @@ public class StreakService {
     private final DailyLogRepository dailyLogRepository;
 
     public int getCurrentStreak(Integer userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         List<DailyLog> logs = dailyLogRepository.findLogsWithActivity(userId);
         if (logs.isEmpty()) return 0;
 
@@ -63,7 +64,7 @@ public class StreakService {
     }
 
     public int getTodaySolved(Integer userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         return dailyLogRepository.findByUserIdAndLogDate(userId, today)
                 .map(DailyLog::getQsSolved)
                 .orElse(0);

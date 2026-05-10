@@ -48,7 +48,7 @@ export default function Dashboard() {
       <style>{`
         .dashboard-top-row {
           display: grid;
-          grid-template-columns: max-content 1fr 1.3fr 1fr;
+          grid-template-columns: max-content 1fr 0.9fr 1.4fr;
           gap: 16px;
           margin-bottom: 24px;
         }
