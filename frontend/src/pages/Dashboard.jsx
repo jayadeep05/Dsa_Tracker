@@ -7,7 +7,7 @@ function Heatmap({ logs }) {
   const cells = [];
   for (let i = 13; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
-    const ds = d.toISOString().split('T')[0];
+    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     const log = logs.find(l => l.logDate === ds);
     const qs = log ? log.qsSolved : 0;
 
