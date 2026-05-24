@@ -19,8 +19,8 @@ api.interceptors.response.use(
     response => response,
     error => {
         const isAuthEndpoint = error.config?.url?.includes('/auth/');
-        if (error.response && error.response.status === 401 && !isAuthEndpoint) {
-            // Unauthorized on a protected route — session expired
+        if (error.response && (error.response.status === 401 || error.response.status === 403) && !isAuthEndpoint) {
+            // Session expired or invalid token — redirect to login
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('user');
             window.location.href = '/login';

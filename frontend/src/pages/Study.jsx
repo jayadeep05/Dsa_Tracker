@@ -52,6 +52,7 @@ export default function Study() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
   const [diffFilter, setDiffFilter] = useState('all');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { triggerSuccess } = useSuccess();
   const prevQuestionsRef = useRef({});
 
@@ -122,11 +123,59 @@ export default function Study() {
 
         {/* ── SIDEBAR ── */}
         <div style={{
-          width: '268px', flexShrink: 0, position: 'sticky', top: '56px',
-          height: 'calc(100vh - 56px)', overflowY: 'auto',
+          width: sidebarCollapsed ? '52px' : '268px',
+          flexShrink: 0, position: 'sticky', top: '56px',
+          height: 'calc(100vh - 56px)', overflowY: 'auto', overflowX: 'hidden',
           background: 'var(--sidebar-bg)', borderRight: '1px solid rgba(var(--white-rgb),0.06)',
           padding: '12px 0',
+          transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
         }}>
+          {/* Sidebar header: title + collapse button */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+            padding: sidebarCollapsed ? '4px 0 8px' : '2px 10px 10px 16px',
+            borderBottom: '1px solid rgba(var(--white-rgb),0.05)',
+            marginBottom: '4px',
+          }}>
+            {/* "DSA Patterns" label — hidden when collapsed */}
+            {!sidebarCollapsed && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <svg width="15" height="15" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, opacity: 0.7 }}>
+                  <rect x="1" y="1" width="4" height="4" rx="1" fill="#00D4AA"/>
+                  <rect x="9" y="1" width="4" height="4" rx="1" fill="#3B82F6"/>
+                  <rect x="1" y="9" width="4" height="4" rx="1" fill="#8B5CF6"/>
+                  <rect x="9" y="9" width="4" height="4" rx="1" fill="#F59E0B"/>
+                </svg>
+                <span style={{
+                  fontSize: '13px', fontWeight: '800', textTransform: 'uppercase',
+                  letterSpacing: '0.08em', color: 'rgba(var(--white-rgb),0.55)',
+                }}>DSA Patterns</span>
+              </div>
+            )}
+            {/* Collapse toggle button */}
+            <button
+              onClick={() => setSidebarCollapsed(c => !c)}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              style={{
+                width: '26px', height: '26px', borderRadius: '7px', border: '1px solid rgba(var(--white-rgb),0.09)',
+                background: 'rgba(var(--white-rgb),0.04)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'rgba(var(--white-rgb),0.35)', transition: 'all 0.15s', flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--white-rgb),0.09)'; e.currentTarget.style.color = 'rgba(var(--white-rgb),0.75)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--white-rgb),0.04)'; e.currentTarget.style.color = 'rgba(var(--white-rgb),0.35)'; }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path
+                  d={sidebarCollapsed ? 'M4 2l4 4-4 4' : 'M8 2L4 6l4 4'}
+                  stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
           {sidebarItems.map(({ p, header }) => {
             const pc = PHASE_COLORS[getPhase(p.prepOrder)];
             const isActive = p.id === activeId;
@@ -134,7 +183,8 @@ export default function Study() {
             const pctQ = p.totalQs > 0 ? (solvedQ / p.totalQs) * 100 : 0;
             return (
               <div key={p.id}>
-                {header && (
+                {/* Phase header — hidden when collapsed */}
+                {header && !sidebarCollapsed && (
                   <div style={{
                     padding: '14px 16px 5px',
                     fontSize: '10px', fontWeight: '800', textTransform: 'uppercase',
@@ -146,11 +196,21 @@ export default function Study() {
                     <div style={{ flex: 1, height: '1px', background: `${pc}30` }} />
                   </div>
                 )}
+                {/* Phase divider dot when collapsed */}
+                {header && sidebarCollapsed && (
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
+                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: `${pc}60` }} />
+                  </div>
+                )}
                 <div
                   onClick={() => setActiveId(p.id)}
+                  title={sidebarCollapsed ? `${p.prepOrder}. ${p.name}` : undefined}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '9px 16px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center',
+                    gap: sidebarCollapsed ? '0' : '10px',
+                    padding: sidebarCollapsed ? '6px 0' : '9px 16px',
+                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                    cursor: 'pointer',
                     borderLeft: `3px solid ${isActive ? pc : 'transparent'}`,
                     background: isActive ? `${pc}0D` : 'transparent',
                     transition: 'all 0.15s',
@@ -158,18 +218,32 @@ export default function Study() {
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-alpha-3)'; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span style={{ fontSize: '11px', color: isActive ? pc : 'rgba(var(--white-rgb),0.2)', fontWeight: '700', width: '18px' }}>{p.prepOrder}.</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: '13px', fontWeight: isActive ? '600' : '500',
-                      color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>{p.name}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '1px' }}>
-                      Wk {p.weekStart} · {solvedQ}/{p.totalQs}
+                  {sidebarCollapsed ? (
+                    // Collapsed: just show mini-ring with order number centered
+                    <div style={{ position: 'relative', width: '28px', height: '28px' }}>
+                      <MiniRing pct={pctQ} color={pc} />
+                      <span style={{
+                        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '8px', fontWeight: '800', color: isActive ? pc : 'rgba(var(--white-rgb),0.3)',
+                      }}>{p.prepOrder}</span>
                     </div>
-                  </div>
-                  <MiniRing pct={pctQ} color={pc} />
+                  ) : (
+                    // Expanded: full row
+                    <>
+                      <span style={{ fontSize: '11px', color: isActive ? pc : 'rgba(var(--white-rgb),0.2)', fontWeight: '700', width: '18px' }}>{p.prepOrder}.</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: '13px', fontWeight: isActive ? '600' : '500',
+                          color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        }}>{p.name}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '1px' }}>
+                          Wk {p.weekStart} · {solvedQ}/{p.totalQs}
+                        </div>
+                      </div>
+                      <MiniRing pct={pctQ} color={pc} />
+                    </>
+                  )}
                 </div>
               </div>
             );

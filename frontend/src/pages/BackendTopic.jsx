@@ -25,7 +25,7 @@ function CodeBlock({ lines, lang }) {
           {copied ? '✓ Copied' : 'Copy'}
         </button>
       </div>
-      <pre style={{ background: '#0d1117', margin: 0, padding: '16px 20px', fontSize: 12.5, lineHeight: 1.7, overflowX: 'auto', fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',monospace", color: '#e6edf3' }}>
+      <pre style={{ background: 'var(--code-bg)', margin: 0, padding: '16px 20px', fontSize: 12.5, lineHeight: 1.7, overflowX: 'auto', fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',monospace", color: 'var(--text-primary)' }}>
         <code>{text}</code>
       </pre>
     </div>
@@ -45,9 +45,9 @@ function ContentBlock({ block }) {
         ⚡ {block.label}
       </div>
     );
-    case 'p': return <p style={{ fontSize: 14, lineHeight: 1.8, color: 'rgba(230,237,243,0.85)', marginBottom: 14 }}>{block.value}</p>;
+    case 'p': return <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--text-primary)', marginBottom: 14 }}>{block.value}</p>;
     case 'bold': return (
-      <div style={{ fontSize: 13, fontWeight: 700, marginTop: 22, marginBottom: 10, color: '#e6edf3', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, marginTop: 22, marginBottom: 10, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ width: 3, height: 16, background: 'linear-gradient(180deg,#00d4aa,#00a880)', borderRadius: 3, flexShrink: 0, display: 'inline-block' }} />
         {block.value}
       </div>
@@ -55,32 +55,32 @@ function ContentBlock({ block }) {
     case 'bullet': return (
       <div style={{ display: 'flex', gap: 12, marginBottom: 8, paddingLeft: 8 }}>
         <span style={{ color: '#00d4aa', flexShrink: 0, marginTop: 2, fontSize: 12 }}>▸</span>
-        <span style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.8)', lineHeight: 1.7 }}>{block.value}</span>
+        <span style={{ fontSize: 13.5, color: 'var(--text-light)', lineHeight: 1.7 }}>{block.value}</span>
       </div>
     );
     case 'code': return <CodeBlock lines={block.lines} lang={block.lang} />;
     case 'done': return (
       <div style={{ background: 'linear-gradient(135deg,rgba(0,212,170,0.08),rgba(0,168,128,0.04))', border: '1px solid rgba(0,212,170,0.3)', borderLeft: '3px solid #00d4aa', borderRadius: 12, padding: '16px 20px', marginTop: 20, marginBottom: 20 }}>
         <div style={{ fontSize: 10, fontWeight: 800, color: '#00d4aa', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.12em' }}>✅ Done when</div>
-        <div style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.85)', lineHeight: 1.7 }}>{block.value}</div>
+        <div style={{ fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.7 }}>{block.value}</div>
       </div>
     );
     case 'tip': return (
       <div style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.25)', borderLeft: '3px solid #3b82f6', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
         <div style={{ fontSize: 10, fontWeight: 800, color: '#60a5fa', marginBottom: 8, letterSpacing: '0.12em', textTransform: 'uppercase' }}>💡 Tip</div>
-        <div style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.85)', lineHeight: 1.7 }}>{block.value}</div>
+        <div style={{ fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.7 }}>{block.value}</div>
       </div>
     );
     case 'warn': return (
       <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.25)', borderLeft: '3px solid #f59e0b', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
         <div style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', marginBottom: 8, letterSpacing: '0.12em', textTransform: 'uppercase' }}>⚠️ Warning</div>
-        <div style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.85)', lineHeight: 1.7 }}>{block.value}</div>
+        <div style={{ fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.7 }}>{block.value}</div>
       </div>
     );
     case 'market': return (
       <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.25)', borderLeft: '3px solid #8b5cf6', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
         <div style={{ fontSize: 10, fontWeight: 800, color: '#a78bfa', marginBottom: 8, letterSpacing: '0.12em', textTransform: 'uppercase' }}>📊 Market Insight</div>
-        <div style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.85)', lineHeight: 1.7 }}>{block.value}</div>
+        <div style={{ fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.7 }}>{block.value}</div>
       </div>
     );
     default: return null;
@@ -339,7 +339,7 @@ export default function BackendTopic() {
               </div>
             </div>
 
-            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.25, marginBottom: 8, background: 'linear-gradient(135deg,var(--text-primary),rgba(var(--white-rgb),0.75))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.25, marginBottom: 8, color: 'var(--text-primary)' }}>
               {topic.title}
             </h1>
             {topic.subtitle && <div style={{ fontSize: 13, color: 'var(--text-dim)', fontStyle: 'italic', letterSpacing: '0.01em' }}>{topic.subtitle}</div>}

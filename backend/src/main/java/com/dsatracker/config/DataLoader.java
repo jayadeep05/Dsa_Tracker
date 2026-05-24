@@ -7,6 +7,9 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import java.io.InputStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
 @Component @RequiredArgsConstructor @Slf4j
 public class DataLoader implements ApplicationRunner {
@@ -17,10 +20,309 @@ public class DataLoader implements ApplicationRunner {
     // Always display and navigate questions in prep_order, not the raw DB insert order.
     @Override @Transactional
     public void run(ApplicationArguments args) {
-        if (patternRepository.countBy() > 0) { log.info("DB already seeded, skipping."); return; }
-        log.info("Seeding database with all patterns and questions...");
-        seedAll();
-        log.info("Seeding complete.");
+        if (patternRepository.countBy() < 20 || questionRepository.count() < 245) {
+            log.info("Database empty or missing questions/patterns. Re-seeding database with all patterns and questions...");
+            questionRepository.deleteAll();
+            patternRepository.deleteAll();
+            seedAll();
+            log.info("Seeding complete.");
+        }
+        log.info("Enriching questions with full dataset from HTML sheet...");
+        enrichQuestionsFromJSON();
+        log.info("Enrichment complete.");
+    }
+
+    private void enrichQuestionsFromJSON() {
+        try {
+            log.info("Loading enriched questions data from JSON...");
+            InputStream is = getClass().getResourceAsStream("/questions_enriched.json");
+            if (is == null) {
+                log.warn("Enriched questions JSON file not found in classpath!");
+                return;
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> list = mapper.readValue(is, new TypeReference<List<Map<String, Object>>>() {});
+            log.info("Loaded {} questions from JSON. Enriching database questions...", list.size());
+            int count = 0;
+            for (Map<String, Object> qMap : list) {
+                String name = (String) qMap.get("name");
+                String lcUrl = (String) qMap.get("lcUrl");
+                String insight = (String) qMap.get("insight");
+
+                // Find by LeetCode URL first
+                List<Question> qList = new ArrayList<>();
+                if (lcUrl != null && !lcUrl.isBlank()) {
+                    qList = questionRepository.findAllByLcUrl(lcUrl);
+                }
+                // Fallback to name
+                if (qList.isEmpty() && name != null && !name.isBlank()) {
+                    qList = questionRepository.findAllByName(name);
+                }
+
+                for (Question q : qList) {
+                    q.setInsight(insight);
+                    questionRepository.save(q);
+                    count++;
+                }
+            }
+            log.info("Enriched {} question records with rich problem statements and metadata.", count);
+        } catch (Exception e) {
+            log.error("Failed to enrich questions from JSON file", e);
+        }
+    }
+
+    private void updateRichInsights() {
+        updateQInsight("Valid Palindrome",
+            "### Description\n" +
+            "A phrase is a **palindrome** if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.\n\n" +
+            "Given a string `s`, return `true` if it is a palindrome, or `false` otherwise.\n\n" +
+            "### Example 1\n" +
+            "Input: s = \"A man, a plan, a canal: Panama\"\n" +
+            "Output: true\n" +
+            "Explanation: \"amanaplanacanalpanama\" is a palindrome.\n\n" +
+            "### Example 2\n" +
+            "Input: s = \"race a car\"\n" +
+            "Output: false\n" +
+            "Explanation: \"raceacar\" is not a palindrome.\n\n" +
+            "### Constraints\n" +
+            "- `1 <= s.length <= 2 * 10^5`\n" +
+            "- `s` consists only of printable ASCII characters.");
+
+        updateQInsight("Two Sum II - Input Array Sorted",
+            "### Description\n" +
+            "Given a **1-indexed** array of integers `numbers` that is already **sorted in non-decreasing order**, find two numbers such that they add up to a specific `target` number. Let these two numbers be `numbers[index1]` and `numbers[index2]` where `1 <= index1 < index2 <= numbers.length`.\n\n" +
+            "Return the indices of the two numbers, `index1` and `index2`, added by one as an integer array `[index1, index2]` of length 2.\n\n" +
+            "The tests are generated such that there is **exactly one solution**. You **may not** use the same element twice.\n\n" +
+            "Your solution must use only constant extra space.\n\n" +
+            "### Example 1\n" +
+            "Input: numbers = [2,7,11,15], target = 9\n" +
+            "Output: [1,2]\n" +
+            "Explanation: The sum of 2 and 7 is 9. Therefore, index1 = 1, index2 = 2. We return [1, 2].\n\n" +
+            "### Constraints\n" +
+            "- `2 <= numbers.length <= 3 * 10^4`\n" +
+            "- `-1000 <= numbers[i] <= 1000`\n" +
+            "- `numbers` is sorted in non-decreasing order.\n" +
+            "- `-1000 <= target <= 1000`\n" +
+            "- The tests are generated such that there is exactly one solution.");
+
+        updateQInsight("3Sum",
+            "### Description\n" +
+            "Given an integer array `nums`, return all the triplets `[nums[i], nums[j], nums[k]]` such that `i != j`, `i != k`, and `j != k`, and `nums[i] + nums[j] + nums[k] == 0`.\n\n" +
+            "Notice that the solution set must not contain duplicate triplets.\n\n" +
+            "### Example 1\n" +
+            "Input: nums = [-1,0,1,2,-1,-4]\n" +
+            "Output: [[-1,-1,2],[-1,0,1]]\n" +
+            "Explanation:\n" +
+            "nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0.\n" +
+            "nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0.\n" +
+            "nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0.\n" +
+            "The distinct triplets are [-1,-1,2] and [-1,0,1].\n\n" +
+            "### Constraints\n" +
+            "- `3 <= nums.length <= 3000`\n" +
+            "- `-10^5 <= nums[i] <= 10^5`");
+
+        updateQInsight("Container With Most Water",
+            "### Description\n" +
+            "You are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the `i-th` line are `(i, 0)` and `(i, height[i])`.\n\n" +
+            "Find two lines that together with the x-axis form a container, such that the container contains the most water.\n\n" +
+            "Return *the maximum amount of water a container can store*.\n\n" +
+            "Notice that you may not slant the container.\n\n" +
+            "### Example 1\n" +
+            "Input: height = [1,8,6,2,5,4,8,3,7]\n" +
+            "Output: 49\n" +
+            "Explanation: The vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.\n\n" +
+            "### Constraints\n" +
+            "- `n == height.length`\n" +
+            "- `2 <= n <= 10^5`\n" +
+            "- `0 <= height[i] <= 10^4`");
+
+        updateQInsight("Trapping Rain Water",
+            "### Description\n" +
+            "Given `n` non-negative integers representing an elevation map where the width of each bar is `1`, compute how much water it can trap after raining.\n\n" +
+            "### Example 1\n" +
+            "Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]\n" +
+            "Output: 6\n" +
+            "Explanation: The elevation map is represented by [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water are trapped.\n\n" +
+            "### Constraints\n" +
+            "- `n == height.length`\n" +
+            "- `1 <= n <= 2 * 10^4`\n" +
+            "- `0 <= height[i] <= 10^5`");
+
+        updateQInsight("Reverse Linked List",
+            "### Description\n" +
+            "Given the `head` of a singly linked list, reverse the list, and return *the reversed list*.\n\n" +
+            "### Example 1\n" +
+            "Input: head = [1,2,3,4,5]\n" +
+            "Output: [5,4,3,2,1]\n\n" +
+            "### Constraints\n" +
+            "- The number of nodes in the list is the range `[0, 5000]`.\n" +
+            "- `-5000 <= Node.val <= 5000`");
+
+        updateQInsight("LRU Cache",
+            "### Description\n" +
+            "Design a data structure that follows the constraints of a **Least Recently Used (LRU) cache**.\n\n" +
+            "Implement the `LRUCache` class:\n" +
+            "- `LRUCache(int capacity)` Initialize the LRU cache with positive size `capacity`.\n" +
+            "- `int get(int key)` Return the value of the `key` if the key exists, otherwise return `-1`.\n" +
+            "- `void put(int key, int value)` Update the value of the `key` if the `key` exists. Otherwise, add the `key-value` pair to the cache. If the number of keys exceeds the `capacity` from this operation, **evict** the least recently used key.\n\n" +
+            "The functions `get` and `put` must each run in `O(1)` average time complexity.\n\n" +
+            "### Example 1\n" +
+            "Input: [\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n" +
+            "[[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]\n" +
+            "Output: [null, null, null, 1, null, -1, null, -1, 3, 4]\n" +
+            "Explanation:\n" +
+            "LRUCache lRUCache = new LRUCache(2);\n" +
+            "lRUCache.put(1, 1); // cache is {1=1}\n" +
+            "lRUCache.put(2, 2); // cache is {1=1, 2=2}\n" +
+            "lRUCache.get(1);    // return 1\n" +
+            "lRUCache.put(3, 3); // LRU key was 2, evicts key 2, cache is {1=1, 3=3}\n" +
+            "lRUCache.get(2);    // returns -1 (not found)\n\n" +
+            "### Constraints\n" +
+            "- `1 <= capacity <= 3000`\n" +
+            "- `0 <= key <= 10^4`\n" +
+            "- `0 <= value <= 10^5`\n" +
+            "- At most `2 * 10^5` calls will be made to `get` and `put`.");
+
+        updateQInsight("Best Time to Buy and Sell Stock",
+            "### Description\n" +
+            "You are given an array `prices` where `prices[i]` is the price of a given stock on the `i-th` day.\n\n" +
+            "You want to maximize your profit by choosing a **single day** to buy one stock and choosing a **different day in the future** to sell that stock.\n\n" +
+            "Return *the maximum profit you can achieve from this transaction*. If you cannot achieve any profit, return `0`.\n\n" +
+            "### Example 1\n" +
+            "Input: prices = [7,1,5,3,6,4]\n" +
+            "Output: 5\n" +
+            "Explanation: Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.\n\n" +
+            "### Constraints\n" +
+            "- `1 <= prices.length <= 10^5`\n" +
+            "- `0 <= prices[i] <= 10^4`");
+
+        updateQInsight("Longest Substring Without Repeating Characters",
+            "### Description\n" +
+            "Given a string `s`, find the length of the **longest substring** without repeating characters.\n\n" +
+            "### Example 1\n" +
+            "Input: s = \"abcabcbb\"\n" +
+            "Output: 3\n" +
+            "Explanation: The answer is \"abc\", with the length of 3.\n\n" +
+            "### Constraints\n" +
+            "- `0 <= s.length <= 5 * 10^4`\n" +
+            "- `s` consists of English letters, digits, symbols and spaces.");
+
+        updateQInsight("Minimum Window Substring",
+            "### Description\n" +
+            "Given two strings `s` and `t` of lengths `m` and `n` respectively, return *the minimum window substring* of `s` such that every character in `t` (including duplicates) is included in the window. If there is no such substring, return the empty string `\"\"`.\n\n" +
+            "The testcases will be generated such that the answer is **unique**.\n\n" +
+            "### Example 1\n" +
+            "Input: s = \"ADOBECODEBANC\", t = \"ABC\"\n" +
+            "Output: \"BANC\"\n" +
+            "Explanation: The minimum window substring \"BANC\" includes 'A', 'B', and 'C' from string t.\n\n" +
+            "### Constraints\n" +
+            "- `m == s.length`\n" +
+            "- `n == t.length`\n" +
+            "- `1 <= m, n <= 10^5`\n" +
+            "- `s` and `t` consist of uppercase and lowercase English letters.");
+
+        updateQInsight("Search in Rotated Sorted Array",
+            "### Description\n" +
+            "There is an integer array `nums` sorted in ascending order (with **distinct** values).\n\n" +
+            "Prior to being passed to your function, `nums` is possibly rotated at an unknown pivot index `k` (`1 <= k < nums.length`) such that the resulting array is `[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]` (0-indexed).\n\n" +
+            "Given the array `nums` after the possible rotation and an integer `target`, return *the index of target if it is in nums, or -1 if it is not in nums*.\n\n" +
+            "You must write an algorithm with `O(log n)` runtime complexity.\n\n" +
+            "### Example 1\n" +
+            "Input: nums = [4,5,6,7,0,1,2], target = 0\n" +
+            "Output: 4\n\n" +
+            "### Constraints\n" +
+            "- `1 <= nums.length <= 5000`\n" +
+            "- `-10^4 <= nums[i] <= 10^4`\n" +
+            "- All values of `nums` are unique.\n" +
+            "- `-10^4 <= target <= 10^4`");
+
+        updateQInsight("Koko Eating Bananas",
+            "### Description\n" +
+            "Koko loves to eat bananas. There are `n` piles of bananas, the `i-th` pile has `piles[i]` bananas. The guards have gone and will come back in `h` hours.\n\n" +
+            "Koko can decide her bananas-per-hour eating speed of `k`. Each hour, she chooses some pile of bananas and eats `k` bananas from that pile. If the pile has less than `k` bananas, she eats all of them instead and will not eat any more bananas during this hour.\n\n" +
+            "Return *the minimum integer k such that she can eat all the bananas within h hours*.\n\n" +
+            "### Example 1\n" +
+            "Input: piles = [3,6,7,11], h = 8\n" +
+            "Output: 4\n\n" +
+            "### Constraints\n" +
+            "- `1 <= piles.length <= 10^4`\n" +
+            "- `piles.length <= h <= 10^9`\n" +
+            "- `1 <= piles[i] <= 10^9`");
+
+        updateQInsight("Subarray Sum Equals K",
+            "### Description\n" +
+            "Given an array of integers `nums` and an integer `k`, return *the total number of subarrays whose sum equals to k*.\n\n" +
+            "A subarray is a contiguous **non-empty** sequence of elements within an array.\n\n" +
+            "### Example 1\n" +
+            "Input: nums = [1,1,1], k = 2\n" +
+            "Output: 2\n\n" +
+            "### Constraints\n" +
+            "- `1 <= nums.length <= 2 * 10^4`\n" +
+            "- `-1000 <= nums[i] <= 1000`\n" +
+            "- `-10^7 <= k <= 10^7`");
+
+        updateQInsight("Kth Largest Element in an Array",
+            "### Description\n" +
+            "Given an integer array `nums` and an integer `k`, return *the k-th largest element in the array*.\n\n" +
+            "Note that it is the `k-th` largest element in the sorted order, not the `k-th` distinct element.\n\n" +
+            "Can you solve it without sorting in `O(n)` time complexity?\n\n" +
+            "### Example 1\n" +
+            "Input: nums = [3,2,1,5,6,4], k = 2\n" +
+            "Output: 5\n\n" +
+            "### Constraints\n" +
+            "- `1 <= k <= nums.length <= 10^5`\n" +
+            "- `-10^4 <= nums[i] <= 10^4`");
+
+        updateQInsight("Find Median from Data Stream",
+            "### Description\n" +
+            "The **median** is the middle value in an ordered integer list. If the size of the list is even, there is no middle value, and the median is the mean of the two middle values.\n\n" +
+            "Implement the `MedianFinder` class:\n" +
+            "- `MedianFinder()` initializes the `MedianFinder` object.\n" +
+            "- `void addNum(int num)` adds the integer `num` from the data stream to the data structure.\n" +
+            "- `double findMedian()` returns the median of all elements so far.\n\n" +
+            "### Example 1\n" +
+            "Input: [\"MedianFinder\", \"addNum\", \"addNum\", \"findMedian\", \"addNum\", \"findMedian\"]\n" +
+            "[[], [1], [2], [], [3], []]\n" +
+            "Output: [null, null, null, 1.5, null, 2.0]\n\n" +
+            "### Constraints\n" +
+            "- `-10^5 <= num <= 10^5`\n" +
+            "- At most `5 * 10^4` calls will be made to `addNum` and `findMedian`.");
+
+        updateQInsight("Number of Islands",
+            "### Description\n" +
+            "Given an `m x n` 2D binary grid `grid` which represents a map of `'1'`s (land) and `'0'`s (water), return *the number of islands*.\n\n" +
+            "An **island** is surrounded by water and is formed by connecting adjacent lands horizontally or vertically.\n\n" +
+            "### Example 1\n" +
+            "Input: grid = [\n" +
+            "  [\"1\",\"1\",\"1\",\"1\",\"0\"],\n" +
+            "  [\"1\",\"1\",\"0\",\"1\",\"0\"],\n" +
+            "  [\"1\",\"1\",\"0\",\"0\",\"0\"],\n" +
+            "  [\"0\",\"0\",\"0\",\"0\",\"0\"]\n" +
+            "]\n" +
+            "Output: 1\n\n" +
+            "### Constraints\n" +
+            "- `m == grid.length`\n" +
+            "- `n == grid[i].length`\n" +
+            "- `1 <= m, n <= 300`\n" +
+            "- `grid[i][j]` is '0' or '1'.");
+
+        updateQInsight("Climbing Stairs",
+            "### Description\n" +
+            "You are climbing a staircase. It takes `n` steps to reach the top.\n\n" +
+            "Each time you can either climb `1` or `2` steps. In how many distinct ways can you climb to the top?\n\n" +
+            "### Example 1\n" +
+            "Input: n = 2\n" +
+            "Output: 2\n\n" +
+            "### Constraints\n" +
+            "- `1 <= n <= 45`");
+    }
+
+    private void updateQInsight(String name, String richInsight) {
+        List<Question> list = questionRepository.findAllByName(name);
+        for (Question q : list) {
+            q.setInsight(richInsight);
+            questionRepository.save(q);
+        }
     }
     private Pattern savePattern(String name,String slug,int order,int week,String phase,String sub,int total,int must) {
         return patternRepository.save(Pattern.builder().name(name).slug(slug).prepOrder(order).weekStart(week).phaseLabel(phase).subHeading(sub).totalQs(total).mustCount(must).build());

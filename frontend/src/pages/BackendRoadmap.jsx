@@ -127,7 +127,7 @@ export default function BackendRoadmap() {
               <div style={{ padding: '0 24px 24px', borderTop: '1px solid rgba(139,92,246,0.15)' }}>
                 <p style={{ fontSize: 14, color: 'var(--text-gray)', lineHeight: 1.7, margin: '20px 0' }}>{PROJECT_MAP.description}</p>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Package root: <span style={{ color: '#a78bfa', textTransform: 'none', letterSpacing: 'normal', fontFamily: 'monospace', fontSize: 12 }}>{PROJECT_MAP.packageRoot}</span></div>
-                <pre style={{ background: '#0d1117', border: '1px solid var(--card-border)', borderRadius: 12, padding: '16px 20px', fontSize: 12.5, lineHeight: 1.8, overflowX: 'auto', color: '#e6edf3', fontFamily: "'JetBrains Mono','Fira Code',monospace", marginBottom: 24, boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.2)' }}>
+                <pre style={{ background: 'var(--code-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: '16px 20px', fontSize: 12.5, lineHeight: 1.8, overflowX: 'auto', color: 'var(--text-primary)', fontFamily: "'JetBrains Mono','Fira Code',monospace", marginBottom: 24, boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)' }}>
                   {PROJECT_MAP.structure.join('\n')}
                 </pre>
                 <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#00d4aa', marginBottom: 16 }}>Deliverables by Phase 1 end</div>

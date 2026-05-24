@@ -67,7 +67,7 @@ function SimpleMarkdown({ text }) {
           borderLeft: '3px solid #00d4aa',
           background: 'rgba(0,212,170,0.06)',
           borderRadius: 10,
-          color: 'rgba(230,237,243,0.82)',
+          color: 'var(--text-light)',
           fontSize: 13.5,
           lineHeight: 1.6
         }}>
@@ -82,7 +82,7 @@ function SimpleMarkdown({ text }) {
       elements.push(
         <div key={`bullet-${i}`} style={{ display: 'flex', gap: 10, marginBottom: 6, paddingLeft: 8 }}>
           <span style={{ color: '#00d4aa', flexShrink: 0, marginTop: 4, fontSize: 10 }}>▸</span>
-          <span style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.8)', lineHeight: 1.6 }}>
+          <span style={{ fontSize: 13.5, color: 'var(--text-light)', lineHeight: 1.6 }}>
             {parseFormatting(trimmed.substring(2))}
           </span>
         </div>
@@ -101,7 +101,7 @@ function SimpleMarkdown({ text }) {
             borderRadius: '50%',
             background: 'rgba(59,130,246,0.12)',
             border: '1px solid rgba(59,130,246,0.25)',
-            color: '#93c5fd',
+            color: '#3b82f6',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -110,7 +110,7 @@ function SimpleMarkdown({ text }) {
             fontWeight: 800,
             marginTop: 2
           }}>{num}</span>
-          <span style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.84)', lineHeight: 1.65 }}>
+          <span style={{ fontSize: 13.5, color: 'var(--text-light)', lineHeight: 1.65 }}>
             {parseFormatting(body)}
           </span>
         </div>
@@ -120,7 +120,7 @@ function SimpleMarkdown({ text }) {
 
     // Standard Paragraph
     elements.push(
-      <p key={`p-${i}`} style={{ fontSize: 14, lineHeight: 1.75, color: 'rgba(230,237,243,0.85)', marginBottom: 12, margin: '6px 0' }}>
+      <p key={`p-${i}`} style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text-primary)', marginBottom: 12, margin: '6px 0' }}>
         {parseFormatting(line)}
       </p>
     );
@@ -146,7 +146,7 @@ function MarkdownTable({ lines }) {
                 textAlign: 'left',
                 padding: '11px 13px',
                 fontSize: 10.5,
-                color: '#93c5fd',
+                color: 'var(--accent-blue)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 borderBottom: '1px solid var(--border)'
@@ -163,7 +163,7 @@ function MarkdownTable({ lines }) {
                 <td key={cellIdx} style={{
                   padding: '11px 13px',
                   fontSize: 12.8,
-                  color: 'rgba(230,237,243,0.82)',
+                  color: 'var(--text-light)',
                   lineHeight: 1.55,
                   borderTop: idx === 0 ? 'none' : '1px solid var(--border)'
                 }}>
@@ -186,7 +186,7 @@ function parseFormatting(text) {
 
   return matches.map((match, idx) => {
     if (match.startsWith('**') && match.endsWith('**')) {
-      return <strong key={idx} style={{ color: '#e6edf3', fontWeight: 800 }}>{match.slice(2, -2)}</strong>;
+      return <strong key={idx} style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{match.slice(2, -2)}</strong>;
     }
     if (match.startsWith('`') && match.endsWith('`')) {
       return (
@@ -223,7 +223,7 @@ function CodeBlock({ lines, lang }) {
           {copied ? '✓ Copied' : 'Copy'}
         </button>
       </div>
-      <pre style={{ background: '#0d1117', margin: 0, padding: '16px 20px', fontSize: 12.5, lineHeight: 1.7, overflowX: 'auto', fontFamily: "monospace", color: '#e6edf3' }}>
+      <pre style={{ background: 'var(--code-bg)', margin: 0, padding: '16px 20px', fontSize: 12.5, lineHeight: 1.7, overflowX: 'auto', fontFamily: "monospace", color: 'var(--text-primary)' }}>
         <code>{text}</code>
       </pre>
     </div>
@@ -307,7 +307,7 @@ function SelfCheckItem({ question, answer }) {
       {show ? (
         <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)', animation: 'slideDown 0.25s' }}>
           <div style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', color: '#00d4aa', marginBottom: 4 }}>Correct Answer:</div>
-          <p style={{ fontSize: 13.5, color: 'rgba(230,237,243,0.85)', lineHeight: 1.6, margin: 0 }}>{answer}</p>
+          <p style={{ fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.6, margin: 0 }}>{answer}</p>
         </div>
       ) : (
         <button onClick={() => setShow(true)} style={{
@@ -376,7 +376,7 @@ function SubsectionBlock({ subsection }) {
 }
 
 /* ─── Left Sidebar list of topics ───────────────────────── */
-function TopicSidebar({ chapter, currentSectionId, allProgress, onNavigate }) {
+function TopicSidebar({ chapter, currentSectionId, allProgress, onNavigate, onCollapse }) {
   const total = chapter.sections.length;
   const done = chapter.sections.filter(sec => allProgress[sec.id]?.status === 'DONE').length;
   const pct = Math.round((done / total) * 100);
@@ -385,7 +385,26 @@ function TopicSidebar({ chapter, currentSectionId, allProgress, onNavigate }) {
     <aside style={{ width: 280, flexShrink: 0, height: '100%', overflowY: 'auto', paddingBottom: 32, paddingRight: 8 }}>
       {/* Header phase card */}
       <div style={{ padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 16, marginBottom: 10 }}>
-        <div style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#8b5cf6', marginBottom: 4 }}>Chapter Progress</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#8b5cf6' }}>Chapter Progress</div>
+          <button
+            onClick={onCollapse}
+            title="Collapse sidebar"
+            style={{
+              width: '24px', height: '24px', borderRadius: '7px', border: '1px solid rgba(var(--white-rgb),0.09)',
+              background: 'rgba(var(--white-rgb),0.04)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--white-rgb),0.09)'; e.currentTarget.style.color = '#8b5cf6'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--white-rgb),0.04)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+            </svg>
+          </button>
+        </div>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-light)', lineHeight: 1.4, marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {chapter.title}
         </div>
@@ -449,7 +468,7 @@ function TopicSidebar({ chapter, currentSectionId, allProgress, onNavigate }) {
 /* ─── Topic Footer ───────────────────────────────────────── */
 function TopicFooter({ notes, onNotesChange, saving }) {
   return (
-    <div style={{ marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
+    <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 22, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>System Design Takeaways</div>
@@ -487,6 +506,18 @@ export default function SystemDesignTopic() {
   const [loaded, setLoaded] = useState(false);
   const [allProgress, setAllProgress] = useState({});
   const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 920 : false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('system_design_sidebar_collapsed');
+      return stored === 'true';
+    }
+    return false;
+  });
+
+  const handleSidebarCollapseToggle = (collapsed) => {
+    setSidebarCollapsed(collapsed);
+    localStorage.setItem('system_design_sidebar_collapsed', collapsed ? 'true' : 'false');
+  };
 
   useEffect(() => {
     const onResize = () => setIsNarrow(window.innerWidth < 920);
@@ -564,26 +595,71 @@ export default function SystemDesignTopic() {
 
   return (
     <div style={{ position: 'fixed', top: 56, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: 1450, display: 'flex', gap: isNarrow ? 0 : 20, padding: isNarrow ? '16px 12px 0' : '24px 20px 0' }}>
+      <div style={{ width: '100%', maxWidth: 1450, display: 'flex', gap: isNarrow || sidebarCollapsed ? 0 : 20, padding: isNarrow ? '16px 12px 0' : '24px 20px 0' }}>
 
         {/* LEFT SIDEBAR */}
         {!isNarrow && (
-          <TopicSidebar 
-            chapter={activeChapter} 
-            currentSectionId={topicId} 
-            allProgress={allProgress} 
-            onNavigate={id => navigate(`/system-design/topic/${id}`, { replace: true })} 
-          />
+          <div style={{
+            width: sidebarCollapsed ? 0 : 280,
+            overflow: 'hidden',
+            flexShrink: 0,
+            height: '100%',
+            transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease',
+            opacity: sidebarCollapsed ? 0 : 1,
+          }}>
+            <TopicSidebar 
+              chapter={activeChapter} 
+              currentSectionId={topicId} 
+              allProgress={allProgress} 
+              onNavigate={id => navigate(`/system-design/topic/${id}`, { replace: true })} 
+              onCollapse={() => handleSidebarCollapseToggle(true)}
+            />
+          </div>
         )}
 
         {/* CENTER CONTENT */}
-        <main style={{ flex: 1, minWidth: 0, height: '100%', overflowY: 'auto', padding: isNarrow ? '0 4px 80px' : '0 40px 80px' }}>
+        <main style={{ flex: 1, minWidth: 0, height: '100%', overflowY: 'auto', padding: isNarrow ? '0 4px 24px' : '0 40px 24px' }}>
           
           {/* Breadcrumbs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
-            <button onClick={() => navigate('/system-design/roadmap')} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 12, cursor: 'pointer', padding: 0, fontWeight: 500 }}>System Design</button>
-            <span style={{ color: 'var(--border-strong)' }}>/</span>
-            <span style={{ fontSize: 12, color: 'var(--text-gray)', fontWeight: 500 }}>{activeChapter.title}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            {!isNarrow && sidebarCollapsed && (
+              <button
+                onClick={() => handleSidebarCollapseToggle(false)}
+                title="Expand sidebar"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(var(--white-rgb),0.09)',
+                  background: 'rgba(var(--white-rgb),0.04)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#8b5cf6',
+                  transition: 'all 0.15s',
+                  flexShrink: 0
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(var(--white-rgb),0.09)';
+                  e.currentTarget.style.color = '#00d4aa';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(var(--white-rgb),0.04)';
+                  e.currentTarget.style.color = '#8b5cf6';
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+              </button>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={() => navigate('/system-design/roadmap')} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 12, cursor: 'pointer', padding: 0, fontWeight: 500 }}>System Design</button>
+              <span style={{ color: 'var(--border-strong)' }}>/</span>
+              <span style={{ fontSize: 12, color: 'var(--text-gray)', fontWeight: 500 }}>{activeChapter.title}</span>
+            </div>
           </div>
 
           {isNarrow && (
@@ -636,7 +712,7 @@ export default function SystemDesignTopic() {
               </div>
             </div>
 
-            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.25, marginBottom: 8, background: 'linear-gradient(135deg,var(--text-primary),rgba(255,255,255,0.75))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.25, marginBottom: 8, color: 'var(--text-primary)' }}>
               {activeSection.number ? `${activeSection.number}. ` : ''}{activeSection.title}
             </h1>
           </div>
@@ -654,7 +730,7 @@ export default function SystemDesignTopic() {
           <TopicFooter notes={notes} onNotesChange={setNotes} saving={saving} />
 
           {/* Bottom Next/Prev buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
             {prevSection ? (
               <button 
                 onClick={() => navigate(`/system-design/topic/${prevSection.id}`, { replace: true })} 

@@ -16,6 +16,10 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     Optional<Question> findByName(String name);
 
+    List<Question> findAllByName(String name);
+
+    List<Question> findAllByLcUrl(String lcUrl);
+
     @Query("SELECT q FROM Question q WHERE " +
            "(:q IS NULL OR LOWER(q.name) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(q.insight) LIKE LOWER(CONCAT('%', :q, '%'))) " +
            "AND (:patternId IS NULL OR q.pattern.id = :patternId) " +

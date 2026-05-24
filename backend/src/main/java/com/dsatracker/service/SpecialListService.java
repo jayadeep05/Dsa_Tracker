@@ -20,7 +20,7 @@ public class SpecialListService {
 
     // Revision-20 exact names
     private static final List<String> REVISION_20 = Arrays.asList(
-            "Two Sum II – Input Array Sorted", "Longest Substring Without Repeating Characters",
+            "Two Sum II - Input Array Sorted", "Longest Substring Without Repeating Characters",
             "Binary Search", "Koko Eating Bananas", "Product of Array Except Self",
             "Subarray Sum Equals K", "Number of Islands", "Rotting Oranges",
             "Course Schedule", "Invert Binary Tree", "Binary Tree Level Order Traversal",

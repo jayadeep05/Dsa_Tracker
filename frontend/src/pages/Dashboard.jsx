@@ -12,15 +12,53 @@ function Heatmap({ logs }) {
     const qs = log ? log.qsSolved : 0;
 
     let bg = 'var(--bg-alpha-3)';
-    let border = '1px solid var(--bg-alpha-5)';
+    let border = '1px solid var(--border-alpha-10)';
     let glow = 'none';
-    if (qs >= 8) { bg = '#34D399'; border = '1px solid #6EE7B7'; glow = '0 0 12px rgba(52,211,153,0.8)'; }
-    else if (qs >= 5) { bg = '#10B981'; border = '1px solid #34D399'; glow = '0 0 8px rgba(16,185,129,0.5)'; }
-    else if (qs >= 3) { bg = 'rgba(16,185,129,0.7)'; border = '1px solid rgba(52,211,153,0.5)'; glow = '0 0 4px rgba(16,185,129,0.2)'; }
-    else if (qs >= 1) { bg = 'rgba(16,185,129,0.3)'; border = '1px solid rgba(52,211,153,0.2)'; }
+    let hoverGlow = '0 0 8px rgba(255,255,255,0.1)';
+
+    if (qs >= 5) {
+      bg = '#34D399';
+      border = '1px solid #6EE7B7';
+      glow = '0 0 12px rgba(52,211,153,0.85)';
+      hoverGlow = '0 0 18px rgba(52,211,153,1)';
+    } else if (qs >= 3) {
+      bg = '#10B981';
+      border = '1px solid #34D399';
+      glow = '0 0 8px rgba(16,185,129,0.5)';
+      hoverGlow = '0 0 14px rgba(16,185,129,0.9)';
+    } else if (qs === 2) {
+      bg = '#047857';
+      border = '1px solid #059669';
+      hoverGlow = '0 0 10px rgba(4,120,87,0.7)';
+    } else if (qs === 1) {
+      bg = '#064e3b';
+      border = '1px solid #047857';
+      hoverGlow = '0 0 8px rgba(6,78,59,0.6)';
+    }
 
     cells.push(
-      <div key={ds} style={{ width: '16px', height: '16px', borderRadius: '4px', background: bg, border: border, boxShadow: glow, transition: 'all 0.2s ease', cursor: 'pointer' }} title={`${ds}: ${qs} solved`} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.2)'; if (qs >= 1) e.currentTarget.style.boxShadow = '0 0 16px rgba(52,211,153,1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = glow; }} />
+      <div
+        key={ds}
+        style={{
+          width: '16px',
+          height: '16px',
+          borderRadius: '4px',
+          background: bg,
+          border: border,
+          boxShadow: glow,
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          cursor: 'pointer'
+        }}
+        title={`${ds}: ${qs} solved`}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.2)';
+          e.currentTarget.style.boxShadow = hoverGlow;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = glow;
+        }}
+      />
     );
   }
   return <div style={{ display: 'flex', gap: '4px' }}>{cells}</div>;

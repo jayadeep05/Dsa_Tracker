@@ -29,3 +29,7 @@ deploy_setup.sh
 deploy_run.sh
 fix_nginx.sh
 test_api.sh
+
+# === Environment & Zips ===
+.env
+*.zip

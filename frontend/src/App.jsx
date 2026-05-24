@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import './index.css';
 import Dashboard from './pages/Dashboard';
@@ -22,129 +22,215 @@ const PrivateRoute = ({ children }) => {
 };
 
 function SectionSwitcher({ section, onSwitch }) {
-    const sliderLeft = section === 'dsa' ? '3px' : section === 'backend' ? '127px' : '251px';
-    const sliderColor = section === 'dsa' 
-        ? 'linear-gradient(135deg, rgba(0, 212, 170, 0.16) 0%, rgba(0, 212, 170, 0.04) 100%)' 
-        : section === 'backend' 
-        ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.16) 0%, rgba(139, 92, 246, 0.04) 100%)' 
-        : 'linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0.04) 100%)';
-    const sliderBorder = section === 'dsa' 
-        ? 'rgba(0, 212, 170, 0.35)' 
-        : section === 'backend' 
-        ? 'rgba(139, 92, 246, 0.35)' 
-        : 'rgba(59, 130, 246, 0.35)';
-    const sliderShadow = section === 'dsa' 
-        ? '0 0 16px -2px rgba(0, 212, 170, 0.3)' 
-        : section === 'backend' 
-        ? '0 0 16px -2px rgba(139, 92, 246, 0.3)' 
-        : '0 0 16px -2px rgba(59, 130, 246, 0.3)';
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
-    return (
-        <div style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.01)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '24px',
-            padding: '3px',
-            width: '378px',
-            height: '38px',
-            flexShrink: 0,
-            boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.2), 0 4px 16px -4px rgba(0, 0, 0, 0.2)',
-            overflow: 'hidden'
-        }}>
-            {/* Buttery smooth sliding pill behind the buttons */}
-            <div style={{
-                position: 'absolute',
-                top: '3px',
-                bottom: '3px',
-                left: sliderLeft,
-                width: '124px',
-                borderRadius: '20px',
-                background: sliderColor,
-                border: `1px solid ${sliderBorder}`,
-                boxShadow: sliderShadow,
-                transition: 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
-                zIndex: 0,
-                pointerEvents: 'none'
-            }} />
-
-            {/* DSA Button */}
-            <button
-                onClick={() => onSwitch('dsa')}
-                onMouseEnter={e => {
-                    if (section !== 'dsa') e.currentTarget.style.color = 'var(--text-primary)';
-                }}
-                onMouseLeave={e => {
-                    if (section !== 'dsa') e.currentTarget.style.color = 'var(--text-muted)';
-                }}
-                style={{
-                    position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '124px', height: '100%', background: 'transparent', border: 'none', outline: 'none',
-                    fontSize: '12px', fontWeight: 700, cursor: 'pointer', borderRadius: '20px',
-                    transition: 'color 0.25s ease', letterSpacing: '0.02em',
-                    color: section === 'dsa' ? '#00d4aa' : 'var(--text-muted)',
-                }}
-            >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+    // Track configuration details
+    const tracks = [
+        {
+            id: 'dsa',
+            label: 'DSA',
+            color: '#00d4aa',
+            glow: 'rgba(0, 212, 170, 0.35)',
+            icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="16 18 22 12 16 6" />
                     <polyline points="8 6 2 12 8 18" />
                 </svg>
-                DSA
-            </button>
-
-            {/* Backend Button */}
-            <button
-                onClick={() => onSwitch('backend')}
-                onMouseEnter={e => {
-                    if (section !== 'backend') e.currentTarget.style.color = 'var(--text-primary)';
-                }}
-                onMouseLeave={e => {
-                    if (section !== 'backend') e.currentTarget.style.color = 'var(--text-muted)';
-                }}
-                style={{
-                    position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '124px', height: '100%', background: 'transparent', border: 'none', outline: 'none',
-                    fontSize: '12px', fontWeight: 700, cursor: 'pointer', borderRadius: '20px',
-                    transition: 'color 0.25s ease', letterSpacing: '0.02em',
-                    color: section === 'backend' ? '#a78bfa' : 'var(--text-muted)',
-                }}
-            >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+            )
+        },
+        {
+            id: 'backend',
+            label: 'Backend',
+            color: '#a78bfa',
+            glow: 'rgba(139, 92, 246, 0.35)',
+            icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
                     <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
                     <line x1="6" y1="6" x2="6.01" y2="6" />
                     <line x1="6" y1="18" x2="6.01" y2="18" />
                 </svg>
-                Backend
-            </button>
-
-            {/* System Design Button */}
-            <button
-                onClick={() => onSwitch('system-design')}
-                onMouseEnter={e => {
-                    if (section !== 'system-design') e.currentTarget.style.color = 'var(--text-primary)';
-                }}
-                onMouseLeave={e => {
-                    if (section !== 'system-design') e.currentTarget.style.color = 'var(--text-muted)';
-                }}
-                style={{
-                    position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: '124px', height: '100%', background: 'transparent', border: 'none', outline: 'none',
-                    fontSize: '12px', fontWeight: 700, cursor: 'pointer', borderRadius: '20px',
-                    transition: 'color 0.25s ease', letterSpacing: '0.02em',
-                    color: section === 'system-design' ? '#60a5fa' : 'var(--text-muted)',
-                }}
-            >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+            )
+        },
+        {
+            id: 'system-design',
+            label: 'System Design',
+            color: '#60a5fa',
+            glow: 'rgba(59, 130, 246, 0.35)',
+            icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="16" y="16" width="6" height="6" rx="1" />
                     <rect x="2" y="16" width="6" height="6" rx="1" />
                     <rect x="9" y="2" width="6" height="6" rx="1" />
                     <path d="M12 8v8M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
                 </svg>
-                System Design
+            )
+        }
+    ];
+
+    const currentTrack = tracks.find(t => t.id === section) || tracks[0];
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Escape') {
+                setIsOpen(false);
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyDown);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen]);
+
+    return (
+        <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+            {/* Dropdown Trigger Pill */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(var(--white-rgb), 0.03)',
+                    border: `1px solid ${isOpen ? currentTrack.color : 'rgba(var(--white-rgb), 0.08)'}`,
+                    borderRadius: '20px',
+                    padding: '0 12px',
+                    height: '38px',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                    color: currentTrack.color,
+                    boxShadow: isOpen ? `0 0 16px -2px ${currentTrack.glow}` : 'none',
+                    transition: 'all 0.25s cubic-bezier(0.25, 1, 0.5, 1)'
+                }}
+                onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(var(--white-rgb), 0.06)';
+                    e.currentTarget.style.borderColor = currentTrack.color;
+                    e.currentTarget.style.boxShadow = `0 0 16px -2px ${currentTrack.color}`;
+                }}
+                onMouseLeave={e => {
+                    if (!isOpen) {
+                        e.currentTarget.style.background = 'rgba(var(--white-rgb), 0.03)';
+                        e.currentTarget.style.borderColor = 'rgba(var(--white-rgb), 0.08)';
+                        e.currentTarget.style.boxShadow = 'none';
+                    }
+                }}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {currentTrack.icon}
+                    <span>{currentTrack.label}</span>
+                </div>
+                {/* Chevron icon rotates smoothly when dropdown is open */}
+                <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                        marginLeft: '8px',
+                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)',
+                        color: 'var(--text-muted)'
+                    }}
+                >
+                    <polyline points="6 9 12 15 18 9" />
+                </svg>
             </button>
+
+            {/* Dropdown Options Menu */}
+            {isOpen && (
+                <div style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    left: 0,
+                    minWidth: '210px',
+                    background: 'rgba(15, 15, 20, 0.85)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '12px',
+                    padding: '6px',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05)',
+                    zIndex: 1100,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    animation: 'dropdownFadeIn 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards'
+                }}>
+                    {tracks.map(t => {
+                        const isSelected = t.id === section;
+                        return (
+                            <button
+                                key={t.id}
+                                onClick={() => {
+                                    onSwitch(t.id);
+                                    setIsOpen(false);
+                                }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    width: '100%',
+                                    height: '36px',
+                                    padding: '0 12px',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    background: isSelected ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+                                    color: isSelected ? t.color : 'var(--text-muted)',
+                                    fontSize: '12px',
+                                    fontWeight: 650,
+                                    cursor: 'pointer',
+                                    outline: 'none',
+                                    transition: 'all 0.2s ease',
+                                    textAlign: 'left'
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.color = t.color;
+                                    e.currentTarget.style.background = `rgba(255, 255, 255, 0.06)`;
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.color = isSelected ? t.color : 'var(--text-muted)';
+                                    e.currentTarget.style.background = isSelected ? 'rgba(255, 255, 255, 0.03)' : 'transparent';
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: isSelected ? t.color : 'inherit', display: 'flex', alignItems: 'center' }}>
+                                        {t.icon}
+                                    </span>
+                                    <span>{t.label}</span>
+                                </div>
+                                {isSelected && (
+                                    <span style={{
+                                        width: '6px',
+                                        height: '6px',
+                                        borderRadius: '50%',
+                                        background: t.color,
+                                        boxShadow: `0 0 8px ${t.color}`
+                                    }} />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }
@@ -209,17 +295,17 @@ function Navbar({ toggleTheme, isLight }) {
                 {/* Premium Profile Avatar Pill with dynamic track glows */}
                 <div 
                     style={{
-                        display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.03)',
+                        display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(var(--white-rgb), 0.03)',
                         border: '1px solid var(--border)', borderRadius: '20px', padding: '4px 12px 4px 4px',
                         height: '36px', cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.25, 1, 0.5, 1)'
                     }}
                     onMouseEnter={e => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                        e.currentTarget.style.background = 'rgba(var(--white-rgb), 0.06)';
                         e.currentTarget.style.borderColor = `color-mix(in srgb, ${trackColor} 30%, transparent)`;
                         e.currentTarget.style.boxShadow = `0 0 12px -3px color-mix(in srgb, ${trackColor} 25%, transparent)`;
                     }}
                     onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                        e.currentTarget.style.background = 'rgba(var(--white-rgb), 0.03)';
                         e.currentTarget.style.borderColor = 'var(--border)';
                         e.currentTarget.style.boxShadow = 'none';
                     }}
@@ -243,7 +329,7 @@ function Navbar({ toggleTheme, isLight }) {
                     onClick={toggleTheme} 
                     title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
                     style={{ 
-                        background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', 
+                        background: 'rgba(var(--white-rgb), 0.03)', border: '1px solid var(--border)', 
                         borderRadius: '20px', color: 'var(--text-muted)', 
                         width: '36px', height: '36px', cursor: 'pointer', 
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -251,13 +337,13 @@ function Navbar({ toggleTheme, isLight }) {
                     }}
                     onMouseEnter={e => {
                         e.currentTarget.style.color = trackColor;
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                        e.currentTarget.style.background = 'rgba(var(--white-rgb), 0.06)';
                         e.currentTarget.style.borderColor = `color-mix(in srgb, ${trackColor} 30%, transparent)`;
                         e.currentTarget.style.boxShadow = `0 0 12px -3px color-mix(in srgb, ${trackColor} 25%, transparent)`;
                     }}
                     onMouseLeave={e => {
                         e.currentTarget.style.color = 'var(--text-muted)';
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                        e.currentTarget.style.background = 'rgba(var(--white-rgb), 0.03)';
                         e.currentTarget.style.borderColor = 'var(--border)';
                         e.currentTarget.style.boxShadow = 'none';
                     }}
